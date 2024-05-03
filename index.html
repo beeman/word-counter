@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Word Counter</title>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<form>
+    <div>
+        <label id="words-label" for="words">Words:</label>
+        <br/>
+        <textarea id="words" placeholder="Your text"></textarea>
+    </div>
+    <div>
+        <label id="pace-label" for="pace">Pace:</label>
+        <br />
+        <select id="pace"></select>
+    </div>
+    <div>
+        <label id="count-label" for="count">Count:</label>
+        <br/>
+        <input id="count" disabled />
+    </div>
+    <div>
+        <label id="duration-label" for="duration">Duration:</label>
+        <br/>
+        <input id="duration" disabled />
+    </div>
+</form>
+<script>
+    // Left pad a number with zeroes
+    function leftPad(number, length) {
+        return (new Array(length + 1).join('0') + number).slice(-length);
+    }
+
+    // Calculate the number of minutes and seconds from the number of words and the pace
+    function calculateLength(words, pace) {
+        // Calculate the number of minutes
+        const minutes = Math.floor(words / pace);
+        // Calculate the number of remaining seconds
+        const seconds = Math.round((words - minutes * pace) / (pace / 60));
+
+        // Pad the seconds with zeroes
+        return `${minutes}:${leftPad(seconds, 2)}`;
+    }
+
+    // Calculate the number of words from an input string
+    function calculateWordCount(input) {
+        return input
+            // remove all extra whitespace
+            .replace(/\s/g, ' ')
+            // split into words
+            .split(' ')
+            // remove empty words
+            .map(word => word.trim())
+            // Remove all non-alphanumeric characters
+            .map(word => word.replace(/[^a-zA-Z 0-9]+/g, ''))
+            // Filter out empty words
+            .filter(word => word.length)
+            // Return the number of words
+            .length;
+    }
+
+
+    // Calculate the number of words and the duration and update the elements
+    function calculate(elWordsInput, elPaceInput, elCountOutput, elDurationOutput) {
+        // Get the number of words from the textarea
+        const count = calculateWordCount(elWordsInput.val())
+        // Calculate the duration
+        const length = calculateLength(count, elPaceInput.val());
+
+        // Update the duration element
+        elDurationOutput.val(length);
+        // Update the count element
+        elCountOutput.val(count);
+    }
+
+    // Constants for the pace
+    const fast = 170;
+    const average = 140;
+    const slow = 110;
+
+    // Language object for the different languages
+    const languages = {
+        en: {
+            labels: {
+                yourText: 'Your text:',
+                yourPace: 'Your pace:',
+                words: 'Words:',
+                duration: 'Duration:',
+            },
+            speeds: [
+                { name: 'Fast', value: fast },
+                { name: 'Average', value: average },
+                { name: 'Slow', value: slow }
+            ]
+        },
+        nl: {
+            labels: {
+                yourText: 'Je tekst:',
+                yourPace: 'Je snelheid:',
+                words: 'Woorden:',
+                duration: 'Duur:',
+            },
+            speeds: [
+                { name: 'Snel', value: fast },
+                { name: 'Gemiddeld', value: average },
+                { name: 'Langzaam', value: slow }
+            ]
+        },
+        pt: {
+            labels: {
+                yourText: 'Seu texto:',
+                yourPace: 'Seu ritmo:',
+                words: 'Palavras:',
+                duration: 'Duração:',
+            },
+            speeds: [
+                { name: 'Rapido', value: fast },
+                { name: 'Médio', value: average },
+                { name: 'Lento', value: slow }
+            ]
+        },
+    }
+
+
+    function initialize(lang = 'en') {
+        // Get references to the elements
+        const elCount = jQuery('#count');
+        const elCountLabel = jQuery('#count-label');
+        const elDuration = jQuery('#duration');
+        const elDurationLabel = jQuery('#duration-label');
+        const elPace = jQuery('#pace');
+        const elPaceLabel = jQuery('#pace-label');
+        const elWords = jQuery('#words');
+        const elWordsLabel = jQuery('#words-label');
+
+        function handleCalculate() {
+            // Invoke the calculate function with the elements
+            calculate(elWords, elPace, elCount, elDuration);
+        }
+
+        // Set the event handlers for the textarea
+        elWords.on('keyup', handleCalculate);
+        elWords.on('input', handleCalculate);
+
+        // Set the event handlers for the select element
+        elPace.on('keyup', handleCalculate);
+        elPace.on('change', handleCalculate);
+
+        // Set words to 0
+        elCount.val(0);
+        // Set duration to 0:00
+        elDuration.val('0:00');
+
+        // Get the labels and speeds from the language object
+        const {labels, speeds} = languages[lang];
+
+        // Set the language labels
+        elWordsLabel.text(labels.yourText);
+        elPaceLabel.text(labels.yourPace);
+        elCountLabel.text(labels.words);
+        elDurationLabel.text(labels.duration);
+
+        // Set the speeds for the pace element
+        speeds.forEach(speed => {
+            // Create a new option element
+            const option = document.createElement('option');
+            // Set the value and text of the option
+            option.value = speed.value;
+            option.text = `${speed.name} (${speed.value} wpm)`;
+            // Append the option to the select element
+            elPace.append(option);
+            // Pick the second option as the default
+            if (speed.value === average) {
+                elPace.val(speed.value);
+            }
+        });
+    }
+
+
+    // This function runs when the page is loaded
+    jQuery(document).ready(function () {
+        // Initialize the language to 'en'
+        initialize('en');
+        // Initialize the language to 'nl'
+        // initialize('nl');
+        // Initialize the language to 'pt'
+        // initialize('pt');
+    });
+</script>
+</body>
+</html>
