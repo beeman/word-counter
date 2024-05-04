@@ -183,8 +183,13 @@
 
     // This function runs when the page is loaded
     jQuery(document).ready(function () {
+        // get 'lang' from the request URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get('lang') || 'en';
+        // Make sure the language is valid
+        const lang = languages[langParam] ? langParam : 'en';
         // Initialize the language to 'en'
-        initialize('en');
+        initialize(lang);
         // Initialize the language to 'nl'
         // initialize('nl');
         // Initialize the language to 'pt'
